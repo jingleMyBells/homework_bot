@@ -5,6 +5,7 @@ import time
 import requests
 import telegram
 from dotenv import load_dotenv
+from exceptions import NoEnvVar
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -41,13 +42,14 @@ def get_api_answer(current_timestamp):
     timestamp = current_timestamp or int(time.time())
     params = {'from_date': timestamp}
     response = requests.get(ENDPOINT, headers=HEADERS, params=params)
-    if response.status_code == 200:
-        logging.info('Запрос к эндпоинту вернул HTTP 200')
-    else:
+    if response.status_code != 200:
         error = 'Запрос к эндпоинту вернул не HTTP 200'
         logging.error(error)
         send_message(BOT, error)
-    return response.json()
+    elif response.status_code == 200:
+        logging.info('Запрос к эндпоинту вернул HTTP 200')
+        return response.json()
+    return None
 
 
 def check_response(response):
@@ -109,17 +111,19 @@ def check_tokens():
 
 def main():
     """Основная логика работы бота."""
-    check_tokens()
+    if check_tokens() is False:
+        raise NoEnvVar('Нет переменных окружения')
     # bot = telegram.Bot(token=TELEGRAM_TOKEN)
     current_timestamp = int(time.time())
     while True:
         try:
             response = get_api_answer(current_timestamp)
-            homeworks = check_response(response)
-            if homeworks:
-                for homework in homeworks:
-                    status = parse_status(homework)
-                    send_message(BOT, status)
+            if response:
+                homeworks = check_response(response)
+                if homeworks:
+                    for homework in homeworks:
+                        status = parse_status(homework)
+                        send_message(BOT, status)
 
             current_timestamp = int(time.time())
             time.sleep(RETRY_TIME)
