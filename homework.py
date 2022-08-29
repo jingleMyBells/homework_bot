@@ -55,8 +55,8 @@ def get_api_answer(current_timestamp):
 def check_response(response):
     """Проверка ответа API на соответствие ожиданиям."""
     try:
-        curr_date = response.get('current_date')
-        homeworks = response.get('homeworks')
+        curr_date = response.get('current_date') or None
+        homeworks = response.get('homeworks') or None
         if curr_date:
             logging.info('Ответ API содержит ожидаемые поля')
         else:
