@@ -116,9 +116,10 @@ def main():
         try:
             response = get_api_answer(current_timestamp)
             homeworks = check_response(response)
-            for homework in homeworks:
-                status = parse_status(homework)
-                send_message(BOT, status)
+            if homeworks:
+                for homework in homeworks:
+                    status = parse_status(homework)
+                    send_message(BOT, status)
 
             current_timestamp = int(time.time())
             time.sleep(RETRY_TIME)
@@ -127,8 +128,6 @@ def main():
             message = f'Сбой в работе программы: {error}'
             send_message(BOT, message)
             time.sleep(RETRY_TIME)
-        # else:
-        #     ...
 
 
 if __name__ == '__main__':
