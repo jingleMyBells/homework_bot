@@ -55,26 +55,28 @@ def get_api_answer(current_timestamp):
 
 def check_response(response):
     """Проверка ответа API на соответствие ожиданиям."""
-    print(f'check_response: response = {response}')
-    if type(response) is not dict:
-        raise TypeError('API отетил не словарем')
-    curr_date = response.get('current_date')
-    homeworks = response.get('homeworks')
-    if type(homeworks) is not list:
-        raise TypeError('API вернул домашки не списком')
-    if curr_date:
-        logging.info('Ответ API содержит ожидаемые поля')
-    else:
-        error = (
-            f'API вернул неожиданное содержимое поля: '
-            f'current_date = {curr_date}'
-        )
-        logging.error(error)
-        send_message(BOT, error)
-    if len(homeworks) == 0:
-        logging.debug('Нет изменений статусов домашек')
+    if response:
+        if type(response) is not dict:
+            raise TypeError('API отетил не словарем')
+        curr_date = response.get('current_date')
+        homeworks = response.get('homeworks')
+        if type(homeworks) is not list:
+            raise TypeError('API вернул домашки не списком')
+        if curr_date:
+            logging.info('Ответ API содержит ожидаемые поля')
+        else:
+            error = (
+                f'API вернул неожиданное содержимое поля: '
+                f'current_date = {curr_date}'
+            )
+            logging.error(error)
+            send_message(BOT, error)
+        if len(homeworks) == 0:
+            logging.debug('Нет изменений статусов домашек')
 
-    return homeworks
+        return homeworks
+    else:
+        raise TypeError('Заглушил2')
 
 
 def parse_status(homework):
@@ -83,7 +85,7 @@ def parse_status(homework):
         homework_name = homework.get('homework_name')
         homework_status = homework.get('status')
         if homework_status:
-            verdict = HOMEWORK_STATUSES[homework_status] or None
+            verdict = HOMEWORK_STATUSES[homework_status]
         if verdict:
             logging.info(f'Статус домашки {homework_status} обнаружен')
         else:
