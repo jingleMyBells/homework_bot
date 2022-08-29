@@ -29,8 +29,6 @@ HOMEWORK_STATUSES = {
     'rejected': 'Работа проверена: у ревьюера есть замечания.'
 }
 
-BOT = None
-
 
 def send_message(bot, message):
     """Отправка любых сообщений из остальных функций."""
@@ -46,7 +44,7 @@ def get_api_answer(current_timestamp):
     if response.status_code != 200:
         error = 'Запрос к эндпоинту вернул не HTTP 200'
         logging.error(error)
-        send_message(BOT, error)
+        send_message(bot, error)
     elif response.status_code == 200:
         logging.info('Запрос к эндпоинту вернул HTTP 200')
         return response.json()
@@ -70,7 +68,7 @@ def check_response(response):
                 f'current_date = {curr_date}'
             )
             logging.error(error)
-            send_message(BOT, error)
+            send_message(bot, error)
         if len(homeworks) == 0:
             logging.debug('Нет изменений статусов домашек')
 
@@ -92,7 +90,7 @@ def parse_status(homework):
             error = (f'Статус домашки "{homework_status}" '
                      f'не соответствует ожидаемому')
             logging.error(error)
-            send_message(BOT, error)
+            send_message(bot, error)
         return f'Изменился статус проверки работы "{homework_name}". {verdict}'
     else:
         raise TypeError('Заглушил')
@@ -120,7 +118,8 @@ def main():
     """Основная логика работы бота."""
     if check_tokens() is False:
         raise NoEnvVar('Нет переменных окружения')
-    BOT = telegram.Bot(token=TELEGRAM_TOKEN)
+    global bot
+    bot = telegram.Bot(token=TELEGRAM_TOKEN)
     current_timestamp = int(time.time())
     while True:
         try:
@@ -130,14 +129,14 @@ def main():
                 if homeworks:
                     for homework in homeworks:
                         status = parse_status(homework)
-                        send_message(BOT, status)
+                        send_message(bot, status)
 
             current_timestamp = int(time.time())
             time.sleep(RETRY_TIME)
 
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
-            send_message(BOT, message)
+            send_message(bot, message)
             time.sleep(RETRY_TIME)
 
 
