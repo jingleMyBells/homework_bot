@@ -80,7 +80,9 @@ def parse_status(homework):
     """Распаковка информации по конкретной домашке."""
     homework_name = homework.get('homework_name') or None
     homework_status = homework.get('status') or None
-    verdict = HOMEWORK_STATUSES[homework_status] or None
+    if homework_status:
+        verdict = HOMEWORK_STATUSES[homework_status] or None
+        print(verdict)
     if verdict:
         logging.info(f'Статус домашки {homework_status} обнаружен')
     else:
