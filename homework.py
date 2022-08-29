@@ -66,8 +66,8 @@ def check_response(response):
             )
             logging.error(error)
             send_message(BOT, error)
-        if len(homeworks) == 0:
-            logging.debug('Нет изменений статусов домашек')
+        # if len(homeworks) == 0:
+        #     logging.debug('Нет изменений статусов домашек')
     except Exception:
         raise TypeError('API вернул не словарь')
     else:
