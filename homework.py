@@ -35,6 +35,7 @@ BOT = telegram.Bot(token=TELEGRAM_TOKEN)
 def send_message(bot, message):
     """Отправка любых сообщений из остальных функций."""
     bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
+    logging.info('Отправлено сообщение в телеграм')
 
 
 def get_api_answer(current_timestamp):
@@ -55,11 +56,12 @@ def get_api_answer(current_timestamp):
 def check_response(response):
     """Проверка ответа API на соответствие ожиданиям."""
     if type(response) is not dict:
-        raise TypeError
-    curr_date = response.get('current_date') or None
-    homeworks = response.get('homeworks') or None
+        raise TypeError('API отетил не словарем')
+    curr_date = response.get('current_date')
+    homeworks = response.get('homeworks')
     if type(homeworks) is not list:
-        raise TypeError
+        print(homeworks)
+        raise TypeError('API вернул домашки не списком')
     if curr_date:
         logging.info('Ответ API содержит ожидаемые поля')
     else:
@@ -77,11 +79,10 @@ def check_response(response):
 
 def parse_status(homework):
     """Распаковка информации по конкретной домашке."""
-    homework_name = homework.get('homework_name') or None
-    homework_status = homework.get('status') or None
+    homework_name = homework.get('homework_name')
+    homework_status = homework.get('status')
     if homework_status:
         verdict = HOMEWORK_STATUSES[homework_status] or None
-        print(verdict)
     if verdict:
         logging.info(f'Статус домашки {homework_status} обнаружен')
     else:
