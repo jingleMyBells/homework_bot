@@ -54,8 +54,8 @@ def get_api_answer(current_timestamp):
 
 
 def check_response(response):
-    print(f'check_response: response = {response}')
     """Проверка ответа API на соответствие ожиданиям."""
+    print(f'check_response: response = {response}')
     if type(response) is not dict:
         raise TypeError('API отетил не словарем')
     curr_date = response.get('current_date')
