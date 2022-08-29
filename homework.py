@@ -32,11 +32,12 @@ BOT = telegram.Bot(token=TELEGRAM_TOKEN)
 
 
 def send_message(bot, message):
+    """Отправка любых сообщений из остальных функций."""
     bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
 
 
 def get_api_answer(current_timestamp):
-    """Запрос к API на предмет изменений статусов с заданной даты"""
+    """Запрос к API на предмет изменений статусов с заданной даты."""
     timestamp = current_timestamp or int(time.time())
     params = {'from_date': timestamp}
     response = requests.get(ENDPOINT, headers=HEADERS, params=params)
@@ -50,7 +51,7 @@ def get_api_answer(current_timestamp):
 
 
 def check_response(response):
-    """Проверка ответа API на соответствие ожиданиям"""
+    """Проверка ответа API на соответствие ожиданиям."""
     try:
         curr_date = response.get('current_date')
         homeworks = response.get('homeworks')
@@ -74,7 +75,7 @@ def check_response(response):
 
 
 def parse_status(homework):
-    """Распаковка информации по конкретной домашке"""
+    """Распаковка информации по конкретной домашке."""
     homework_name = homework.get('homework_name')
     homework_status = homework.get('status')
     verdict = HOMEWORK_STATUSES[homework_status]
@@ -89,7 +90,7 @@ def parse_status(homework):
 
 
 def check_tokens():
-    """Проверка наличия всех переменных окружения"""
+    """Проверка наличия всех переменных окружения."""
     env_vars = {
         'PRACTICUM_TOKEN': PRACTICUM_TOKEN,
         'TELEGRAM_TOKEN': TELEGRAM_TOKEN,
