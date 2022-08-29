@@ -29,7 +29,7 @@ HOMEWORK_STATUSES = {
     'rejected': 'Работа проверена: у ревьюера есть замечания.'
 }
 
-BOT = telegram.Bot(token=TELEGRAM_TOKEN)
+BOT = None
 
 
 def send_message(bot, message):
@@ -120,6 +120,7 @@ def main():
     """Основная логика работы бота."""
     if check_tokens() is False:
         raise NoEnvVar('Нет переменных окружения')
+    BOT = telegram.Bot(token=TELEGRAM_TOKEN)
     current_timestamp = int(time.time())
     while True:
         try:
