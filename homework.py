@@ -54,25 +54,24 @@ def get_api_answer(current_timestamp):
 
 def check_response(response):
     """Проверка ответа API на соответствие ожиданиям."""
-    try:
-        curr_date = response.get('current_date') or None
-        homeworks = response.get('homeworks') or None
-        if curr_date:
-            logging.info('Ответ API содержит ожидаемые поля')
-        else:
-            error = (
-                f'API вернул неожиданное содержимое поля: '
-                f'current_date = {curr_date}'
-            )
-            logging.error(error)
-            send_message(BOT, error)
-        if homeworks and len(homeworks) == 0:
-            logging.debug('Нет изменений статусов домашек')
-    except Exception:
-        raise TypeError('API вернул не словарь')
+    if type(response) is not dict:
+        raise TypeError
+    curr_date = response.get('current_date') or None
+    homeworks = response.get('homeworks') or None
+    if type(homeworks) is not list:
+        raise TypeError
+    if curr_date:
+        logging.info('Ответ API содержит ожидаемые поля')
     else:
-        if type(homeworks) != list:
-            raise TypeError('Некорректные данные от API')
+        error = (
+            f'API вернул неожиданное содержимое поля: '
+            f'current_date = {curr_date}'
+        )
+        logging.error(error)
+        send_message(BOT, error)
+    if len(homeworks) == 0:
+        logging.debug('Нет изменений статусов домашек')
+
     return homeworks
 
 
