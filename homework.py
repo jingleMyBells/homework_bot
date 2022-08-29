@@ -54,13 +54,13 @@ def get_api_answer(current_timestamp):
 
 
 def check_response(response):
+    print(f'check_response: response = {response}')
     """Проверка ответа API на соответствие ожиданиям."""
     if type(response) is not dict:
         raise TypeError('API отетил не словарем')
     curr_date = response.get('current_date')
     homeworks = response.get('homeworks')
     if type(homeworks) is not list:
-        print(homeworks)
         raise TypeError('API вернул домашки не списком')
     if curr_date:
         logging.info('Ответ API содержит ожидаемые поля')
@@ -79,18 +79,21 @@ def check_response(response):
 
 def parse_status(homework):
     """Распаковка информации по конкретной домашке."""
-    homework_name = homework.get('homework_name')
-    homework_status = homework.get('status')
-    if homework_status:
-        verdict = HOMEWORK_STATUSES[homework_status] or None
-    if verdict:
-        logging.info(f'Статус домашки {homework_status} обнаружен')
+    if homework:
+        homework_name = homework.get('homework_name')
+        homework_status = homework.get('status')
+        if homework_status:
+            verdict = HOMEWORK_STATUSES[homework_status] or None
+        if verdict:
+            logging.info(f'Статус домашки {homework_status} обнаружен')
+        else:
+            error = (f'Статус домашки "{homework_status}" '
+                     f'не соответствует ожидаемому')
+            logging.error(error)
+            send_message(BOT, error)
+        return f'Изменился статус проверки работы "{homework_name}". {verdict}'
     else:
-        error = (f'Статус домашки "{homework_status}" '
-                 f'не соответствует ожидаемому')
-        logging.error(error)
-        send_message(BOT, error)
-    return f'Изменился статус проверки работы "{homework_name}". {verdict}'
+        raise TypeError('Заглушил')
 
 
 def check_tokens():
