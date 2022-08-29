@@ -66,8 +66,8 @@ def check_response(response):
             )
             logging.error(error)
             send_message(BOT, error)
-        # if len(homeworks) == 0:
-        #     logging.debug('Нет изменений статусов домашек')
+        if homeworks and len(homeworks) == 0:
+            logging.debug('Нет изменений статусов домашек')
     except Exception:
         raise TypeError('API вернул не словарь')
     else:
@@ -78,9 +78,9 @@ def check_response(response):
 
 def parse_status(homework):
     """Распаковка информации по конкретной домашке."""
-    homework_name = homework.get('homework_name')
-    homework_status = homework.get('status')
-    verdict = HOMEWORK_STATUSES[homework_status]
+    homework_name = homework.get('homework_name') or None
+    homework_status = homework.get('status') or None
+    verdict = HOMEWORK_STATUSES[homework_status] or None
     if verdict:
         logging.info(f'Статус домашки {homework_status} обнаружен')
     else:
@@ -113,7 +113,6 @@ def main():
     """Основная логика работы бота."""
     if check_tokens() is False:
         raise NoEnvVar('Нет переменных окружения')
-    # bot = telegram.Bot(token=TELEGRAM_TOKEN)
     current_timestamp = int(time.time())
     while True:
         try:
