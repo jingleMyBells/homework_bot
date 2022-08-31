@@ -1,6 +1,7 @@
 import logging
 import os
 import time
+from http import HTTPStatus
 
 import requests
 import telegram
@@ -41,11 +42,11 @@ def get_api_answer(current_timestamp):
     timestamp = current_timestamp or int(time.time())
     params = {'from_date': timestamp}
     response = requests.get(ENDPOINT, headers=HEADERS, params=params)
-    if response.status_code != 200:
+    if response.status_code != HTTPStatus.OK:
         error = 'Запрос к эндпоинту вернул не HTTP 200'
         logging.error(error)
         send_message(bot, error)
-    elif response.status_code == 200:
+    elif response.status_code == HTTPStatus.OK:
         logging.info('Запрос к эндпоинту вернул HTTP 200')
         return response.json()
     return None
