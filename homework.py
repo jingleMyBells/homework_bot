@@ -7,7 +7,7 @@ from http import HTTPStatus
 import requests
 import telegram
 from dotenv import load_dotenv
-from exceptions import NoEnvVar
+from exceptions import HWWrongStatus, NoEnvVar
 from hw_settings import ENDPOINT, HEADERS, HOMEWORK_STATUSES, RETRY_TIME
 
 logging.basicConfig(
@@ -25,6 +25,7 @@ TELEGRAM_CHAT_ID = os.getenv('CHAT')
 def send_message(bot, message):
     """Отправка любых сообщений из остальных функций."""
     try:
+        logging.info('Попытка отправки сообщения в телеграм')
         bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
         logging.info('Отправлено сообщение в телеграм')
     except Exception as error:
@@ -36,6 +37,7 @@ def get_api_answer(current_timestamp):
     timestamp = current_timestamp or int(time.time())
     params = {'from_date': timestamp}
     try:
+        logging.info('Попытка запроса к API практикума')
         response = requests.get(ENDPOINT, headers=HEADERS, params=params)
         if response.status_code != HTTPStatus.OK:
             error = 'Запрос к эндпоинту вернул не HTTP 200'
@@ -97,12 +99,19 @@ def parse_status(homework):
             verdict = HOMEWORK_STATUSES[homework_status]
         if verdict:
             logging.info(f'Статус домашки {homework_status} обнаружен')
+            return (f'Изменился статус проверки работы '
+                    f'"{homework_name}". {verdict}')
         else:
-            error = (f'Статус домашки "{homework_status}" '
-                     f'не соответствует ожидаемому')
-            logging.error(error)
-            send_message(bot, error)
-        return f'Изменился статус проверки работы "{homework_name}". {verdict}'
+            raise HWWrongStatus(
+                f'Статус домашки "{homework_status} '
+                f'не соответствует ожидаемому')
+            # error = (f'Статус домашки "{homework_status}" '
+            #          f'не соответствует ожидаемому')
+            # logging.error(error)
+            # send_message(bot, error)
+        # return (f'Изменился статус проверки работы '
+        #         f'"{homework_name}". {verdict}')
+        return None
     else:
         raise TypeError('None вместо конкретной домашки')
 
