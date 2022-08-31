@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import time
@@ -7,6 +8,7 @@ import requests
 import telegram
 from dotenv import load_dotenv
 from exceptions import NoEnvVar
+from hw_settings import ENDPOINT, HEADERS, HOMEWORK_STATUSES, RETRY_TIME
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -19,44 +21,52 @@ PRACTICUM_TOKEN = os.getenv('YA_TOKEN')
 TELEGRAM_TOKEN = os.getenv('TG_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('CHAT')
 
-RETRY_TIME = 600
-ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
-HEADERS = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
-
-
-HOMEWORK_STATUSES = {
-    'approved': 'Работа проверена: ревьюеру всё понравилось. Ура!',
-    'reviewing': 'Работа взята на проверку ревьюером.',
-    'rejected': 'Работа проверена: у ревьюера есть замечания.'
-}
-
 
 def send_message(bot, message):
     """Отправка любых сообщений из остальных функций."""
-    bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
-    logging.info('Отправлено сообщение в телеграм')
+    try:
+        bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
+        logging.info('Отправлено сообщение в телеграм')
+    except Exception as error:
+        logging.error(error)
 
 
 def get_api_answer(current_timestamp):
     """Запрос к API на предмет изменений статусов с заданной даты."""
     timestamp = current_timestamp or int(time.time())
     params = {'from_date': timestamp}
-    response = requests.get(ENDPOINT, headers=HEADERS, params=params)
-    if response.status_code != HTTPStatus.OK:
-        error = 'Запрос к эндпоинту вернул не HTTP 200'
+    try:
+        response = requests.get(ENDPOINT, headers=HEADERS, params=params)
+        if response.status_code != HTTPStatus.OK:
+            error = 'Запрос к эндпоинту вернул не HTTP 200'
+            logging.error(error)
+            send_message(bot, error)
+        elif response.status_code == HTTPStatus.OK:
+            logging.info('Запрос к эндпоинту вернул HTTP 200')
+            return response.json()
+        return None
+    except requests.exceptions.HTTPError:
+        error = 'HTTP Error'
         logging.error(error)
         send_message(bot, error)
-    elif response.status_code == HTTPStatus.OK:
-        logging.info('Запрос к эндпоинту вернул HTTP 200')
-        return response.json()
-    return None
+        return None
+    except requests.exceptions.ConnectionError:
+        error = 'Connection Error'
+        logging.error(error)
+        send_message(bot, error)
+        return None
+    except json.decoder.JSONDecodeError:
+        error = 'Invalid JSON'
+        logging.error(error)
+        send_message(bot, error)
+        return None
 
 
 def check_response(response):
     """Проверка ответа API на соответствие ожиданиям."""
     if response:
         if type(response) is not dict:
-            raise TypeError('API отетил не словарем')
+            raise TypeError('API ответил не словарем')
         curr_date = response.get('current_date')
         homeworks = response.get('homeworks')
         if type(homeworks) is not list:
@@ -75,7 +85,7 @@ def check_response(response):
 
         return homeworks
     else:
-        raise TypeError('Заглушил2')
+        raise TypeError('None вместо ответа API')
 
 
 def parse_status(homework):
@@ -94,7 +104,7 @@ def parse_status(homework):
             send_message(bot, error)
         return f'Изменился статус проверки работы "{homework_name}". {verdict}'
     else:
-        raise TypeError('Заглушил')
+        raise TypeError('None вместо конкретной домашки')
 
 
 def check_tokens():
